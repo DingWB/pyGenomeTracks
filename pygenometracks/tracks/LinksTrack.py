@@ -222,7 +222,7 @@ file_type = {TRACK_TYPE}
                         continue
             else:
                 # skip intervals whose start and end are outside the plotted region
-                if interval.begin < region_start and interval.end > region_end:
+                if interval.begin < region_start or interval.end > region_end:
                     continue
 
             if self.properties['line_width'] is not None:
