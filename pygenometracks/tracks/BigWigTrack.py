@@ -216,12 +216,13 @@ file_type = {TRACK_TYPE}
 
         return ax
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         super(BigWigTrack, self).plot_y_axis(ax, plot_axis,
                                              self.properties['transform'],
                                              self.properties['log_pseudocount'],
                                              self.properties['y_axis_values'],
-                                             self.properties['grid'])
+                                             self.properties['grid'],
+                                             overlay=overlay)
 
     def get_scores(self, bw_var, bw_file, chrom_region, start_region, end_region):
         bw = eval(bw_var)

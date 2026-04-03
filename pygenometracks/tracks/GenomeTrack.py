@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import colors as mc
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogFormatter
+from matplotlib.transforms import blended_transform_factory
 import re
 import math
 
@@ -82,7 +83,7 @@ height = 2
                 self.properties[prop] = default_value
 
     def plot_y_axis(self, ax, plot_axis, transform='no', log_pseudocount=0,
-                    y_axis='transformed', only_at_ticks=False):
+                    y_axis='transformed', only_at_ticks=False, overlay=False):
         """
         Plot the scale of the y axis with respect to the plot_axis
         Args:
@@ -93,6 +94,8 @@ height = 2
             y_axis: 'transformed' or 'original'
             only_at_ticks: False: only min_max are diplayed
                            True: only ticks values are displayed
+            overlay: if True, draw tick labels overlaid on the left side
+                     of plot_axis with white background
 
         Returns:
 
@@ -274,9 +277,19 @@ height = 2
                     else:
                         ymid_str = f"{transform}({log_pseudocount} + x)"
 
-                ax.text(0, (ymax + ymin) / 2, ymid_str,
-                        verticalalignment='center',
-                        horizontalalignment='right', wrap=True)
+                if overlay:
+                    trans = blended_transform_factory(plot_axis.transAxes, plot_axis.transData)
+                    bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
+                                      edgecolor='none', alpha=1.0)
+                    plot_axis.text(0.01, (ymax + ymin) / 2, ymid_str,
+                                   verticalalignment='center',
+                                   horizontalalignment='left',
+                                   transform=trans, bbox=bbox_props,
+                                   zorder=100, wrap=True)
+                else:
+                    ax.text(0, (ymax + ymin) / 2, ymid_str,
+                            verticalalignment='center',
+                            horizontalalignment='right', wrap=True)
         else:
             # There is a transformation and we want to display original values
             if ymin * ymax < 0:
@@ -300,49 +313,90 @@ height = 2
                 ticks_labels = [value_to_str(v, max_signs=DEFAULT_MAX_SIGNS + 1,
                                              set_zero_max_value=max_abs_value / 1000) for v in original_values]
 
-        # The lower label should be verticalalignment='bottom'
-        # if it corresponds to ymin
-        i = 0
-        if (ymin < ymax and ticks_values[i] <= ymin + epsilon) \
-           or (ymin > ymax and ticks_values[i] >= ymin + epsilon):
-            v_al = 'bottom'
-            adjusted_value = labels_pos[i] - epsilon
+        if overlay:
+            # Overlay mode: draw tick labels on the left side of the plot
+            trans = blended_transform_factory(plot_axis.transAxes, plot_axis.transData)
+            bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
+                              edgecolor='none', alpha=1.0)
+
+            # The lower label
+            i = 0
+            if (ymin < ymax and ticks_values[i] <= ymin + epsilon) \
+               or (ymin > ymax and ticks_values[i] >= ymin + epsilon):
+                v_al = 'bottom'
+                adjusted_value = labels_pos[i] - epsilon
+            else:
+                v_al = 'center'
+                adjusted_value = labels_pos[i]
+            plot_axis.text(0.01, adjusted_value, ticks_labels[i],
+                           verticalalignment=v_al, horizontalalignment='left',
+                           transform=trans, bbox=bbox_props, zorder=100)
+            for i in range(1, len(ticks_values) - 1):
+                plot_axis.text(0.01, labels_pos[i], ticks_labels[i],
+                               verticalalignment='center',
+                               horizontalalignment='left',
+                               transform=trans, bbox=bbox_props, zorder=100)
+
+            # The upper label
+            i = len(ticks_values) - 1
+            if (ymin < ymax and ticks_values[i] >= ymax - epsilon) \
+               or (ymin > ymax and ticks_values[i] <= ymax - epsilon):
+                v_al = 'top'
+            else:
+                v_al = 'center'
+            plot_axis.text(0.01, labels_pos[i], ticks_labels[i],
+                           verticalalignment=v_al, horizontalalignment='left',
+                           transform=trans, bbox=bbox_props, zorder=100)
         else:
-            v_al = 'center'
-            adjusted_value = labels_pos[i]
-        ax.text(-0.2, adjusted_value, ticks_labels[i],
-                verticalalignment=v_al, horizontalalignment='right')
-        x_pos = [0, 0.5]
-        y_pos = [ticks_values[i]] * 2
-        for i in range(1, len(ticks_values) - 1):
+            # Traditional mode: draw tick labels and bracket on the y-axis panel
+            i = 0
+            if (ymin < ymax and ticks_values[i] <= ymin + epsilon) \
+               or (ymin > ymax and ticks_values[i] >= ymin + epsilon):
+                v_al = 'bottom'
+                adjusted_value = labels_pos[i] - epsilon
+            else:
+                v_al = 'center'
+                adjusted_value = labels_pos[i]
+            ax.text(-0.2, adjusted_value, ticks_labels[i],
+                    verticalalignment=v_al, horizontalalignment='right')
+            x_pos = [0, 0.5]
+            y_pos = [ticks_values[i]] * 2
+            for i in range(1, len(ticks_values) - 1):
+                ax.text(-0.2, labels_pos[i], ticks_labels[i],
+                        verticalalignment='center',
+                        horizontalalignment='right')
+                x_pos += [0.5, 0, 0.5]
+                y_pos += [ticks_values[i]] * 3
+
+            i = len(ticks_values) - 1
+            if (ymin < ymax and ticks_values[i] >= ymax - epsilon) \
+               or (ymin > ymax and ticks_values[i] <= ymax - epsilon):
+                v_al = 'top'
+            else:
+                v_al = 'center'
             ax.text(-0.2, labels_pos[i], ticks_labels[i],
-                    verticalalignment='center',
-                    horizontalalignment='right')
-            x_pos += [0.5, 0, 0.5]
-            y_pos += [ticks_values[i]] * 3
+                    verticalalignment=v_al, horizontalalignment='right')
+            x_pos += [0.5, 0]
+            y_pos += [ticks_values[i]] * 2
 
-        # The upper label should be verticalalignment='top'
-        # if it corresponds to ymax
-        i = len(ticks_values) - 1
-        if (ymin < ymax and ticks_values[i] >= ymax - epsilon) \
-           or (ymin > ymax and ticks_values[i] <= ymax - epsilon):
-            v_al = 'top'
-        else:
-            v_al = 'center'
-        ax.text(-0.2, labels_pos[i], ticks_labels[i],
-                verticalalignment=v_al, horizontalalignment='right')
-        x_pos += [0.5, 0]
-        y_pos += [ticks_values[i]] * 2
+            # Plot the bracket line:
+            ax.plot(x_pos, y_pos, color='black', linewidth=1)
+            ax.set_ylim(plot_axis.get_ylim())
+            ax.set_xlim(0, 1)
 
-        # Finally plot the line:
-        ax.plot(x_pos, y_pos, color='black', linewidth=1)
-
-        # Set the lims:
-        ax.set_ylim(plot_axis.get_ylim())
-        ax.set_xlim(0, 1)
         ax.patch.set_visible(False)
 
-    def plot_label(self, label_ax, width_dpi, h_align='left'):
+    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None):
+        if plot_axis is not None:
+            # Overlay mode: draw label on the upper right of the plot area
+            bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white',
+                              edgecolor='none', alpha=1.0)
+            plot_axis.text(0.99, 0.95, self.properties['title'],
+                           horizontalalignment='right', size='large',
+                           verticalalignment='top',
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
+            return
         if h_align == 'left':
             label_ax.text(0.05, 0.5, self.properties['title'],
                           horizontalalignment='left', size='large',

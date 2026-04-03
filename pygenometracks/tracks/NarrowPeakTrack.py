@@ -165,12 +165,13 @@ file_type = {TRACK_TYPE}
         else:
             ax.set_ylim(ymin, ymax)
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         """
         Plot the scale of the y axis with respect to the plot_axis
         Args:
             ax: axis to use to plot the scale
             plot_axis: the reference axis to get the max and min.
+            overlay: if True, draw tick labels overlaid on the plot
 
         Returns:
 
@@ -208,14 +209,26 @@ file_type = {TRACK_TYPE}
         #      │
         #    0 ┘
 
-        # the coordinate system used is the ax.transAxes (lower left corner (0,0), upper right corner (1,1)
-        # this way is easier to adjust the positions such that the lines are plotted complete
-        # and not only half of the width of the line.
-        x_pos = [0, 0.5, 0.5, 0]
-        y_pos = [y_at_zero, y_at_zero, ymax, ymax]
-        ax.plot(x_pos, y_pos, color='black', linewidth=1, transform=ax.transAxes)
-        ax.text(-0.2, y_at_zero, ymin_str, verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes)
-        ax.text(-0.2, ymax, ymax_str, verticalalignment='top', horizontalalignment='right', transform=ax.transAxes)
+        if overlay:
+            bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
+                              edgecolor='none', alpha=1.0)
+            plot_axis.text(0.01, y_at_zero, ymin_str,
+                           verticalalignment='bottom', horizontalalignment='left',
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
+            plot_axis.text(0.01, ymax, ymax_str,
+                           verticalalignment='top', horizontalalignment='left',
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
+        else:
+            # the coordinate system used is the ax.transAxes
+            x_pos = [0, 0.5, 0.5, 0]
+            y_pos = [y_at_zero, y_at_zero, ymax, ymax]
+            ax.plot(x_pos, y_pos, color='black', linewidth=1, transform=ax.transAxes)
+            ax.text(-0.2, y_at_zero, ymin_str, verticalalignment='bottom',
+                    horizontalalignment='right', transform=ax.transAxes)
+            ax.text(-0.2, ymax, ymax_str, verticalalignment='top',
+                    horizontalalignment='right', transform=ax.transAxes)
         ax.patch.set_visible(False)
 
     def __del__(self):

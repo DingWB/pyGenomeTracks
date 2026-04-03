@@ -488,12 +488,13 @@ file_type = {TRACK_TYPE}
 
         return score_list, x_values
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         super(BedGraphTrack, self).plot_y_axis(ax, plot_axis,
                                                self.properties['transform'],
                                                self.properties['log_pseudocount'],
                                                self.properties['y_axis_values'],
-                                               self.properties['grid'])
+                                               self.properties['grid'],
+                                               overlay=overlay)
 
     def __del__(self):
         if self.tbx is not None:

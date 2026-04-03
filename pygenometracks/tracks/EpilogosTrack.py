@@ -137,8 +137,8 @@ file_type = {TRACK_TYPE}
             ymin, ymax = ax.get_ylim()
             ax.set_ylim(ymax, ymin)
 
-    def plot_y_axis(self, ax, plot_axis):
-        GenomeTrack.plot_y_axis(self, ax, plot_axis)
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
+        GenomeTrack.plot_y_axis(self, ax, plot_axis, overlay=overlay)
 
     def __del__(self):
         if self.tbx is not None:

@@ -43,7 +43,7 @@ class FastaTrack(GenomeTrack):
             outputdict = {x.split('\n')[0].strip(): "".join(x.split('\n')[1:]) for x in fasta}
         return outputdict
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         pass
 
     def plot(self, ax, chrom_region, start_region, end_region):

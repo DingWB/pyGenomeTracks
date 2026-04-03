@@ -662,7 +662,17 @@ file_type = {TRACK_TYPE}
 
         self.log.debug(f"ylim {ax.get_ylim()}")
 
-    def plot_label(self, label_ax, width_dpi, h_align='left'):
+    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None):
+        if plot_axis is not None:
+            # Overlay mode: draw label on the upper right of the plot area
+            bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white',
+                              edgecolor='none', alpha=1.0)
+            plot_axis.text(0.99, 0.95, self.properties['title'],
+                           horizontalalignment='right', size='large',
+                           verticalalignment='top',
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
+            return
         if h_align == 'left':
             label_ax.text(0.05, 1, self.properties['title'],
                           horizontalalignment='left', size='large',
@@ -686,7 +696,7 @@ file_type = {TRACK_TYPE}
             # To be able to wrap to the left:
             txt._get_wrap_line_width = lambda: width_dpi
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         if self.colormap is not None:
             self.colormap.set_array([])
             GenomeTrack.plot_custom_cobar(self, ax, fraction=1)

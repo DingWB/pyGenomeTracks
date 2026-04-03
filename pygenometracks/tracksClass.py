@@ -305,10 +305,12 @@ class PlotTracks(object):
     def __init__(self, tracks_file, fig_width=DEFAULT_FIGURE_WIDTH,
                  fig_height=None, fontsize=None, dpi=None,
                  track_label_width=0.1,
-                 plot_regions=None, plot_width=None):
+                 plot_regions=None, plot_width=None,
+                 track_label_position='right'):
         self.fig_width = fig_width
         self.fig_height = fig_height
         self.dpi = dpi
+        self.track_label_position = track_label_position
         self.type_list = None
         self.track_list = None
         start = self.print_elapsed(None)
@@ -471,7 +473,10 @@ class PlotTracks(object):
         return track_height
 
     def plot(self, file_name, chrom, start, end, title=None,
-             h_align_titles='left', decreasing_x_axis=False):
+             h_align_titles='left', decreasing_x_axis=False,
+             track_label_position=None):
+        if track_label_position is None:
+            track_label_position = self.track_label_position
         track_height = self.get_tracks_height(start_region=start,
                                               end_region=end)
 
@@ -538,9 +543,11 @@ class PlotTracks(object):
             else:
                 plot_axis.set_xlim(start, end)
             track.plot(plot_axis, chrom, start, end)
-            track.plot_y_axis(y_axis, plot_axis)
+            overlay_mode = (track_label_position == 'overlay')
+            track.plot_y_axis(y_axis, plot_axis, overlay=overlay_mode)
             track.plot_label(label_axis, width_dpi=width_dpi,
-                             h_align=h_align_titles)
+                             h_align=h_align_titles,
+                             plot_axis=plot_axis if overlay_mode else None)
 
             if track.properties['overlay_previous'] == 'share-y':
                 plot_axis.set_ylim(ylim)
@@ -860,7 +867,7 @@ class SpacerTrack(GenomeTrack):
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(ymin, ymax)
 
-    def plot_y_axis(self, ax, plot_ax):
+    def plot_y_axis(self, ax, plot_ax, overlay=False):
         pass
 
 
@@ -907,5 +914,5 @@ class XAxisTrack(GenomeTrack):
                 fontsize=self.properties['fontsize'],
                 verticalalignment=vert_align, transform=ax.transAxes)
 
-    def plot_y_axis(self, ax, plot_ax):
+    def plot_y_axis(self, ax, plot_ax, overlay=False):
         pass

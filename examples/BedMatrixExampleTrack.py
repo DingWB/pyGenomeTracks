@@ -85,7 +85,7 @@ file_type = {TRACK_TYPE}
         img = ax.pcolormesh(x, y, matrix, vmin=vmin, vmax=vmax, shading=shading)
         img.set_rasterized(True)
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         """turn off y_axis plot"""
         pass
 

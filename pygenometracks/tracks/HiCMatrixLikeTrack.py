@@ -277,7 +277,7 @@ show_masked_bins = false
     def plot(self, ax, chrom_region, region_start, region_end):
         return
 
-    def plot_y_axis(self, cbar_ax, plot_ax):
+    def plot_y_axis(self, cbar_ax, plot_ax, overlay=False):
         if self.last_img_plotted is None:
             return
 

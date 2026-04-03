@@ -163,9 +163,9 @@ file_type = {TRACK_TYPE}
             if self.properties['rasterize']:
                 self.last_img_plotted.set_rasterized(True)
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         if self.properties['type'] == 'lines':
-            GenomeTrack.plot_y_axis(self, ax, plot_axis)
+            GenomeTrack.plot_y_axis(self, ax, plot_axis, overlay=overlay)
         else:
             GenomeTrack.plot_custom_cobar(self, ax)
 

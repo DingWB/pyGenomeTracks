@@ -235,6 +235,15 @@ def parse_arguments(args=None):
                         default='left',
                         choices=['left', 'right', 'center'])
 
+    parser.add_argument('--trackLabelPosition',
+                        help='By default, the track labels are displayed on the right side '
+                             'of the plot. Use "overlay" to display labels overlaid on the '
+                             'upper-right corner of the track with a white background. '
+                             'When overlay is used, y-axis tick labels are also overlaid '
+                             'on the left side of the track.',
+                        default='right',
+                        choices=['right', 'overlay'])
+
     parser.add_argument('--decreasingXAxis',
                         help='By default, the x-axis is increasing. '
                              'Use this option if you want to see all tracks'
@@ -275,7 +284,8 @@ def main(args=None):
     trp = PlotTracks(args.tracks.name, args.width, fig_height=args.height,
                      fontsize=args.fontSize, dpi=args.dpi,
                      track_label_width=args.trackLabelFraction,
-                     plot_regions=regions, plot_width=args.plotWidth)
+                     plot_regions=regions, plot_width=args.plotWidth,
+                     track_label_position=args.trackLabelPosition)
 
     # Create dir if dir does not exists:
     # Modified from https://stackoverflow.com/questions/12517451/automatically-creating-directories-with-file-output
@@ -295,11 +305,13 @@ def main(args=None):
             sys.stderr.write(f"saving {file_name}\n")
             current_fig = trp.plot(file_name, chrom, start, end, title=args.title,
                                    h_align_titles=args.trackLabelHAlign,
-                                   decreasing_x_axis=args.decreasingXAxis)
+                                   decreasing_x_axis=args.decreasingXAxis,
+                                   track_label_position=args.trackLabelPosition)
             plt.close(current_fig)
     else:
         current_fig = trp.plot(args.outFileName, *regions[0], title=args.title,
                                h_align_titles=args.trackLabelHAlign,
-                               decreasing_x_axis=args.decreasingXAxis)
+                               decreasing_x_axis=args.decreasingXAxis,
+                               track_label_position=args.trackLabelPosition)
         plt.close(current_fig)
     trp.close_files()

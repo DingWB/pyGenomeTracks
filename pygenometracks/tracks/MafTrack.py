@@ -347,17 +347,29 @@ file_type = {TRACK_TYPE}
         if self.properties['rasterize']:
             ax.set_rasterization_zorder(1)
 
-    def plot_y_axis(self, ax, plot_axis):
+    def plot_y_axis(self, ax, plot_axis, overlay=False):
         if self.current_labels is not None:
             if int(mpl.__version__.split(".")[1]) < 3:
                 wrap = False
             else:
                 wrap = True
-            for y, label in enumerate(self.current_labels):
-                ax.text(0, y * self.row_scale + 0.5, label,
-                        verticalalignment='center',
-                        horizontalalignment='right', wrap=wrap)
-            ax.set_ylim(*plot_axis.get_ylim())
+            if overlay:
+                from matplotlib.transforms import blended_transform_factory
+                trans = blended_transform_factory(plot_axis.transAxes, plot_axis.transData)
+                bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
+                                  edgecolor='none', alpha=1.0)
+                for y, label in enumerate(self.current_labels):
+                    plot_axis.text(0.01, y * self.row_scale + 0.5, label,
+                                   verticalalignment='center',
+                                   horizontalalignment='left',
+                                   transform=trans, bbox=bbox_props,
+                                   zorder=100, wrap=wrap)
+            else:
+                for y, label in enumerate(self.current_labels):
+                    ax.text(0, y * self.row_scale + 0.5, label,
+                            verticalalignment='center',
+                            horizontalalignment='right', wrap=wrap)
+                ax.set_ylim(*plot_axis.get_ylim())
 
     @staticmethod
     def compare_letters(lr, la):
