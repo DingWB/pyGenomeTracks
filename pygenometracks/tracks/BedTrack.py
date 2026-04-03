@@ -662,25 +662,30 @@ file_type = {TRACK_TYPE}
 
         self.log.debug(f"ylim {ax.get_ylim()}")
 
-    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None):
+    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None,
+                    overlay_alpha=1.0):
+        title = self.properties['title']
+        # If '|' exists, only show the right part (modality) as track label
+        if '|' in title:
+            title = title.split('|', 1)[1].strip()
         if plot_axis is not None:
-            # Overlay mode: draw label on the upper right of the plot area
+            # Overlay mode: draw label on the center-right of the plot area
             bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white',
-                              edgecolor='none', alpha=1.0)
-            plot_axis.text(0.99, 0.95, self.properties['title'],
+                              edgecolor='none', alpha=overlay_alpha)
+            plot_axis.text(0.99, 0.5, title,
                            horizontalalignment='right', size='large',
-                           verticalalignment='top',
+                           verticalalignment='center',
                            transform=plot_axis.transAxes,
                            bbox=bbox_props, zorder=100)
             return
         if h_align == 'left':
-            label_ax.text(0.05, 1, self.properties['title'],
+            label_ax.text(0.05, 1, title,
                           horizontalalignment='left', size='large',
                           verticalalignment='top',
                           transform=label_ax.transAxes,
                           wrap=True)
         elif h_align == 'right':
-            txt = label_ax.text(1, 1, self.properties['title'],
+            txt = label_ax.text(1, 1, title,
                                 horizontalalignment='right', size='large',
                                 verticalalignment='top',
                                 transform=label_ax.transAxes,
@@ -688,7 +693,7 @@ file_type = {TRACK_TYPE}
             # To be able to wrap to the left:
             txt._get_wrap_line_width = lambda: width_dpi
         else:
-            txt = label_ax.text(0.5, 1, self.properties['title'],
+            txt = label_ax.text(0.5, 1, title,
                                 horizontalalignment='center', size='large',
                                 verticalalignment='top',
                                 transform=label_ax.transAxes,
@@ -696,10 +701,10 @@ file_type = {TRACK_TYPE}
             # To be able to wrap to the left:
             txt._get_wrap_line_width = lambda: width_dpi
 
-    def plot_y_axis(self, ax, plot_axis, overlay=False):
+    def plot_y_axis(self, ax, plot_axis, overlay=False, label_axis=None, colorbar_shrink=0.8, **kwargs):
         if self.colormap is not None:
             self.colormap.set_array([])
-            GenomeTrack.plot_custom_cobar(self, ax, fraction=1)
+            GenomeTrack.plot_custom_cobar(self, ax, fraction=1, shrink=colorbar_shrink)
 
     def get_rgb(self, bed, param='color', default=DEFAULT_BED_COLOR):
         """

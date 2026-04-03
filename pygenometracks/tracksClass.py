@@ -12,6 +12,7 @@ import matplotlib.textpath
 import matplotlib.colors
 import matplotlib.gridspec
 import matplotlib.cm
+import matplotlib.patches as mpatches
 import mpl_toolkits.axisartist as axisartist
 from . utilities import file_to_intervaltree, change_chrom_names, MyBasePairFormatter, get_region
 from collections import OrderedDict
@@ -306,11 +307,23 @@ class PlotTracks(object):
                  fig_height=None, fontsize=None, dpi=None,
                  track_label_width=0.1,
                  plot_regions=None, plot_width=None,
-                 track_label_position='right'):
+                 track_label_position='right',
+                 overlay_alpha=1.0,
+                 colorbar_shrink=0.8,
+                 colorbar_aspect=5,
+                 overlay_fontsize=12,
+                 legend_fontsize=16,
+                 legend_ncol=None):
         self.fig_width = fig_width
         self.fig_height = fig_height
         self.dpi = dpi
         self.track_label_position = track_label_position
+        self.overlay_alpha = overlay_alpha
+        self.colorbar_shrink = colorbar_shrink
+        self.colorbar_aspect = colorbar_aspect
+        self.overlay_fontsize = overlay_fontsize
+        self.legend_fontsize = legend_fontsize
+        self.legend_ncol = legend_ncol
         self.type_list = None
         self.track_list = None
         start = self.print_elapsed(None)
@@ -544,10 +557,16 @@ class PlotTracks(object):
                 plot_axis.set_xlim(start, end)
             track.plot(plot_axis, chrom, start, end)
             overlay_mode = (track_label_position == 'overlay')
-            track.plot_y_axis(y_axis, plot_axis, overlay=overlay_mode)
+            track.plot_y_axis(y_axis, plot_axis, overlay=overlay_mode,
+                              overlay_alpha=self.overlay_alpha,
+                              label_axis=label_axis,
+                              colorbar_shrink=self.colorbar_shrink,
+                              colorbar_aspect=self.colorbar_aspect,
+                              overlay_fontsize=self.overlay_fontsize)
             track.plot_label(label_axis, width_dpi=width_dpi,
                              h_align=h_align_titles,
-                             plot_axis=plot_axis if overlay_mode else None)
+                             plot_axis=plot_axis if overlay_mode else None,
+                             overlay_alpha=self.overlay_alpha)
 
             if track.properties['overlay_previous'] == 'share-y':
                 plot_axis.set_ylim(ylim)
@@ -557,6 +576,31 @@ class PlotTracks(object):
 
         for current_type in self.type_obj_list:
             current_type.plot(axis_list, fig, chrom, start, end)
+
+        # Collect bigwig track labels and colors for a bottom legend
+        bigwig_legend_items = OrderedDict()
+        for track in self.track_obj_list:
+            if track.TRACK_TYPE == 'bigwig' and track.properties.get('title', ''):
+                label = track.properties['title']
+                # Use only the part before '|' for legend display
+                legend_label = label.split('|')[0].strip()
+                color = track.properties['color']
+                if legend_label not in bigwig_legend_items:
+                    bigwig_legend_items[legend_label] = color
+
+        if bigwig_legend_items:
+            handles = [mpatches.Patch(color=c, label=l)
+                       for l, c in bigwig_legend_items.items()]
+            fig.legend(handles=handles,
+                       loc='lower center',
+                       ncol=self.legend_ncol if self.legend_ncol is not None else min(len(handles), 5),
+                       frameon=True,
+                       fontsize=self.legend_fontsize,
+                       handlelength=1.5,
+                       handleheight=1.0,
+                       handletextpad=0.5,
+                       columnspacing=1.0,
+                       borderpad=0.4)
 
         fig.savefig(file_name, dpi=self.dpi, transparent=False)
         return fig
@@ -867,7 +911,7 @@ class SpacerTrack(GenomeTrack):
         ymin, ymax = ax.get_ylim()
         ax.set_ylim(ymin, ymax)
 
-    def plot_y_axis(self, ax, plot_ax, overlay=False):
+    def plot_y_axis(self, ax, plot_ax, overlay=False, **kwargs):
         pass
 
 
@@ -914,5 +958,5 @@ class XAxisTrack(GenomeTrack):
                 fontsize=self.properties['fontsize'],
                 verticalalignment=vert_align, transform=ax.transAxes)
 
-    def plot_y_axis(self, ax, plot_ax, overlay=False):
+    def plot_y_axis(self, ax, plot_ax, overlay=False, **kwargs):
         pass

@@ -241,8 +241,48 @@ def parse_arguments(args=None):
                              'upper-right corner of the track with a white background. '
                              'When overlay is used, y-axis tick labels are also overlaid '
                              'on the left side of the track.',
-                        default='right',
+                        default='overlay',
                         choices=['right', 'overlay'])
+
+    parser.add_argument('--overlayAlpha',
+                        help='Alpha (opacity) for the background of overlay text labels '
+                             '(track labels and y-axis tick labels). '
+                             'Only used when --trackLabelPosition is "overlay". '
+                             '0.0 is fully transparent, 1.0 is fully opaque (default is 1.0).',
+                        default=0.7,
+                        type=float)
+
+    parser.add_argument('--colorbarShrink',
+                        help='Fraction of the track height for the colorbar length '
+                             '(default is 0.8). 1.0 means full track height.',
+                        default=0.8,
+                        type=float)
+
+    parser.add_argument('--colorbarAspect',
+                        help='Aspect ratio (height/width) of the colorbar for bedpe '
+                             'and other tracks. Lower values make the colorbar wider '
+                             '(default is 6).',
+                        default=6,
+                        type=float)
+
+    parser.add_argument('--overlayFontSize',
+                        help='Font size for the overlay y-axis tick labels '
+                             '(default is 12).',
+                        default=12,
+                        type=float)
+
+    parser.add_argument('--legendFontSize',
+                        help='Font size for the bigwig color legend at the bottom '
+                             'of the figure (default is 16).',
+                        default=12,
+                        type=float)
+
+    parser.add_argument('--legendNcol',
+                        help='Number of columns for the bigwig color legend '
+                             'at the bottom of the figure. If not set, it defaults '
+                             'to the number of legend items (max 8).',
+                        default=None,
+                        type=int)
 
     parser.add_argument('--decreasingXAxis',
                         help='By default, the x-axis is increasing. '
@@ -285,7 +325,13 @@ def main(args=None):
                      fontsize=args.fontSize, dpi=args.dpi,
                      track_label_width=args.trackLabelFraction,
                      plot_regions=regions, plot_width=args.plotWidth,
-                     track_label_position=args.trackLabelPosition)
+                     track_label_position=args.trackLabelPosition,
+                     overlay_alpha=args.overlayAlpha,
+                     colorbar_shrink=args.colorbarShrink,
+                     colorbar_aspect=args.colorbarAspect,
+                     overlay_fontsize=args.overlayFontSize,
+                     legend_fontsize=args.legendFontSize,
+                     legend_ncol=args.legendNcol)
 
     # Create dir if dir does not exists:
     # Modified from https://stackoverflow.com/questions/12517451/automatically-creating-directories-with-file-output

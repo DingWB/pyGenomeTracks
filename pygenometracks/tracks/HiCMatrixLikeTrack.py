@@ -277,8 +277,27 @@ show_masked_bins = false
     def plot(self, ax, chrom_region, region_start, region_end):
         return
 
-    def plot_y_axis(self, cbar_ax, plot_ax, overlay=False):
+    def plot_y_axis(self, cbar_ax, plot_ax, overlay=False, label_axis=None, colorbar_shrink=0.8, **kwargs):
         if self.last_img_plotted is None:
             return
 
-        GenomeTrack.plot_custom_cobar(self, cbar_ax)
+        GenomeTrack.plot_custom_cobar(self, cbar_ax, shrink=colorbar_shrink)
+
+    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None,
+                    overlay_alpha=1.0):
+        title = self.properties['title']
+        # If '|' exists, only show the right part (modality) as track label
+        if '|' in title:
+            title = title.split('|', 1)[1].strip()
+        if plot_axis is not None:
+            # Overlay mode: draw label on the top-right corner of the plot area
+            bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white',
+                              edgecolor='none', alpha=overlay_alpha)
+            plot_axis.text(0.99, 0.95, title,
+                           horizontalalignment='right', size='large',
+                           verticalalignment='top',
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
+            return
+        super(HiCMatrixLikeTrack, self).plot_label(label_ax, width_dpi,
+                                                    h_align=h_align)

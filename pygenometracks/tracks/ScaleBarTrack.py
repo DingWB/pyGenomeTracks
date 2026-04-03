@@ -237,5 +237,5 @@ file_type = {TRACK_TYPE}
 
         return ax
 
-    def plot_y_axis(self, ax, plot_axis, overlay=False):
+    def plot_y_axis(self, ax, plot_axis, overlay=False, **kwargs):
         return

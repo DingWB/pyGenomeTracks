@@ -165,7 +165,7 @@ file_type = {TRACK_TYPE}
         else:
             ax.set_ylim(ymin, ymax)
 
-    def plot_y_axis(self, ax, plot_axis, overlay=False):
+    def plot_y_axis(self, ax, plot_axis, overlay=False, **kwargs):
         """
         Plot the scale of the y axis with respect to the plot_axis
         Args:

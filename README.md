@@ -8,3 +8,8 @@ reinstall
 ```shell
 pip uninstall -y pyGenomeTracks && pip install git+https://github.com/DingWB/pyGenomeTracks.git
 ```
+install from disk
+```shell
+pip uninstall -y pyGenomeTracks && python3 -m pip install .
+
+```

@@ -83,7 +83,8 @@ height = 2
                 self.properties[prop] = default_value
 
     def plot_y_axis(self, ax, plot_axis, transform='no', log_pseudocount=0,
-                    y_axis='transformed', only_at_ticks=False, overlay=False):
+                    y_axis='transformed', only_at_ticks=False, overlay=False,
+                    overlay_alpha=1.0, overlay_fontsize=12):
         """
         Plot the scale of the y axis with respect to the plot_axis
         Args:
@@ -279,11 +280,12 @@ height = 2
 
                 if overlay:
                     trans = blended_transform_factory(plot_axis.transAxes, plot_axis.transData)
-                    bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
-                                      edgecolor='none', alpha=1.0)
-                    plot_axis.text(0.01, (ymax + ymin) / 2, ymid_str,
+                    bbox_props = dict(boxstyle='square,pad=0', facecolor='white',
+                                      edgecolor='none', alpha=overlay_alpha)
+                    plot_axis.text(0, (ymax + ymin) / 2, ymid_str,
                                    verticalalignment='center',
                                    horizontalalignment='left',
+                                   fontsize=overlay_fontsize,
                                    transform=trans, bbox=bbox_props,
                                    zorder=100, wrap=True)
                 else:
@@ -314,39 +316,16 @@ height = 2
                                              set_zero_max_value=max_abs_value / 1000) for v in original_values]
 
         if overlay:
-            # Overlay mode: draw tick labels on the left side of the plot
-            trans = blended_transform_factory(plot_axis.transAxes, plot_axis.transData)
-            bbox_props = dict(boxstyle='round,pad=0.1', facecolor='white',
-                              edgecolor='none', alpha=1.0)
-
-            # The lower label
-            i = 0
-            if (ymin < ymax and ticks_values[i] <= ymin + epsilon) \
-               or (ymin > ymax and ticks_values[i] >= ymin + epsilon):
-                v_al = 'bottom'
-                adjusted_value = labels_pos[i] - epsilon
-            else:
-                v_al = 'center'
-                adjusted_value = labels_pos[i]
-            plot_axis.text(0.01, adjusted_value, ticks_labels[i],
-                           verticalalignment=v_al, horizontalalignment='left',
-                           transform=trans, bbox=bbox_props, zorder=100)
-            for i in range(1, len(ticks_values) - 1):
-                plot_axis.text(0.01, labels_pos[i], ticks_labels[i],
-                               verticalalignment='center',
-                               horizontalalignment='left',
-                               transform=trans, bbox=bbox_props, zorder=100)
-
-            # The upper label
-            i = len(ticks_values) - 1
-            if (ymin < ymax and ticks_values[i] >= ymax - epsilon) \
-               or (ymin > ymax and ticks_values[i] <= ymax - epsilon):
-                v_al = 'top'
-            else:
-                v_al = 'center'
-            plot_axis.text(0.01, labels_pos[i], ticks_labels[i],
-                           verticalalignment=v_al, horizontalalignment='left',
-                           transform=trans, bbox=bbox_props, zorder=100)
+            # Overlay mode: draw a single [min-max] label on the center-left of the plot
+            bbox_props = dict(boxstyle='square,pad=0', facecolor='white',
+                              edgecolor='none', alpha=overlay_alpha)
+            combined_label = f"[{ticks_labels[0]}-{ticks_labels[-1]}]"
+            plot_axis.text(0, 0.5, combined_label,
+                           verticalalignment='center',
+                           horizontalalignment='left',
+                           fontsize=overlay_fontsize,
+                           transform=plot_axis.transAxes,
+                           bbox=bbox_props, zorder=100)
         else:
             # Traditional mode: draw tick labels and bracket on the y-axis panel
             i = 0
@@ -386,25 +365,30 @@ height = 2
 
         ax.patch.set_visible(False)
 
-    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None):
+    def plot_label(self, label_ax, width_dpi, h_align='left', plot_axis=None,
+                    overlay_alpha=1.0):
+        title = self.properties['title']
+        # If '|' exists, only show the right part (modality) as track label
+        if '|' in title:
+            title = title.split('|', 1)[1].strip()
         if plot_axis is not None:
-            # Overlay mode: draw label on the upper right of the plot area
+            # Overlay mode: draw label on the center-right of the plot area
             bbox_props = dict(boxstyle='round,pad=0.2', facecolor='white',
-                              edgecolor='none', alpha=1.0)
-            plot_axis.text(0.99, 0.95, self.properties['title'],
+                              edgecolor='none', alpha=overlay_alpha)
+            plot_axis.text(0.99, 0.5, title,
                            horizontalalignment='right', size='large',
-                           verticalalignment='top',
+                           verticalalignment='center',
                            transform=plot_axis.transAxes,
                            bbox=bbox_props, zorder=100)
             return
         if h_align == 'left':
-            label_ax.text(0.05, 0.5, self.properties['title'],
+            label_ax.text(0.05, 0.5, title,
                           horizontalalignment='left', size='large',
                           verticalalignment='center',
                           transform=label_ax.transAxes,
                           wrap=True)
         elif h_align == 'right':
-            txt = label_ax.text(1, 0.5, self.properties['title'],
+            txt = label_ax.text(1, 0.5, title,
                                 horizontalalignment='right', size='large',
                                 verticalalignment='center',
                                 transform=label_ax.transAxes,
@@ -412,7 +396,7 @@ height = 2
             # To be able to wrap to the left:
             txt._get_wrap_line_width = lambda: width_dpi
         else:
-            txt = label_ax.text(0.5, 0.5, self.properties['title'],
+            txt = label_ax.text(0.5, 0.5, title,
                                 horizontalalignment='center', size='large',
                                 verticalalignment='center',
                                 transform=label_ax.transAxes,
@@ -605,7 +589,7 @@ height = 2
                              " uses signs which are not allowed: "
                              f"{','.join(forbidden_signs)}.")
 
-    def plot_custom_cobar(self, axis, fraction=0.95):
+    def plot_custom_cobar(self, axis, fraction=0.95, shrink=0.8, aspect=20):
         if self.properties.get('transform', 'no') in ['log', 'log1p']:
             # get a useful log scale
             # that looks like [1, 2, 5, 10, 20, 50, 100, ... etc]
@@ -618,15 +602,16 @@ height = 2
             try:
                 cobar = plt.colorbar(self.last_img_plotted, ticks=tick_values,
                                      format=formatter, ax=axis,
-                                     fraction=fraction)
+                                     fraction=fraction, shrink=shrink,
+                                     aspect=aspect)
             except (AttributeError, ValueError):
                 return
         else:
             try:
-                cobar = plt.colorbar(self.last_img_plotted, ax=axis, fraction=fraction)
+                cobar = plt.colorbar(self.last_img_plotted, ax=axis, fraction=fraction, shrink=shrink, aspect=aspect)
             except AttributeError:
                 try:
-                    cobar = plt.colorbar(self.colormap, ax=axis, fraction=fraction)
+                    cobar = plt.colorbar(self.colormap, ax=axis, fraction=fraction, shrink=shrink, aspect=aspect)
                 except (AttributeError, ValueError):
                     return
 

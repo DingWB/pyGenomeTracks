@@ -273,10 +273,10 @@ file_type = {TRACK_TYPE}
                 else:
                     ax.set_ylim(-1, ymax)
 
-    def plot_y_axis(self, axis, plot_ax, overlay=False):
+    def plot_y_axis(self, axis, plot_ax, overlay=False, colorbar_shrink=0.8, colorbar_aspect=5, **kwargs):
         if self.colormap is not None and self.properties['overlay_previous'] == 'no':
             self.colormap.set_array([])
-            GenomeTrack.plot_custom_cobar(self, axis, fraction=1)
+            GenomeTrack.plot_custom_cobar(self, axis, fraction=1, shrink=colorbar_shrink, aspect=colorbar_aspect)
 
     def plot_arcs(self, ax, interval):
 

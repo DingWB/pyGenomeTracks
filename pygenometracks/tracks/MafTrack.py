@@ -347,7 +347,7 @@ file_type = {TRACK_TYPE}
         if self.properties['rasterize']:
             ax.set_rasterization_zorder(1)
 
-    def plot_y_axis(self, ax, plot_axis, overlay=False):
+    def plot_y_axis(self, ax, plot_axis, overlay=False, **kwargs):
         if self.current_labels is not None:
             if int(mpl.__version__.split(".")[1]) < 3:
                 wrap = False
