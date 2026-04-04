@@ -40,6 +40,10 @@ class BedTrack(GenomeTrack):
 #max_value=100
 # If the color is simply a color name, then this color is used and the score is not considered.
 color = darkblue
+# optional: show_colorbar
+# If set to true, a colorbar will be displayed when using a colormap.
+# By default, the colorbar is not shown.
+#show_colorbar = true
 # optional: line_width
 #line_width = 0.5
 # optional: border_color
@@ -161,7 +165,8 @@ file_type = {TRACK_TYPE}
                            'all_labels_inside': False,
                            'labels_in_margin': False,
                            'fontstyle': 'normal',
-                           'color_arrow': 'black'}
+                           'color_arrow': 'black',
+                           'show_colorbar': False}
     NECESSARY_PROPERTIES = ['file']
     SYNONYMOUS_PROPERTIES = {'max_value': {'auto': None},
                              'min_value': {'auto': None},
@@ -172,7 +177,7 @@ file_type = {TRACK_TYPE}
                            'fontstyle': ['normal', 'italic', 'oblique']}
     BOOLEAN_PROPERTIES = ['labels', 'global_max_row',
                           'arrowhead_included', 'all_labels_inside',
-                          'labels_in_margin',
+                          'labels_in_margin', 'show_colorbar',
                           # To remove in next 1.0
                           'merge_transcripts', 'merge_overlapping_exons']
     STRING_PROPERTIES = ['file', 'file_type',
@@ -702,7 +707,7 @@ file_type = {TRACK_TYPE}
             txt._get_wrap_line_width = lambda: width_dpi
 
     def plot_y_axis(self, ax, plot_axis, overlay=False, label_axis=None, colorbar_shrink=0.8, **kwargs):
-        if self.colormap is not None:
+        if self.colormap is not None and self.properties['show_colorbar']:
             self.colormap.set_array([])
             GenomeTrack.plot_custom_cobar(self, ax, fraction=1, shrink=colorbar_shrink)
 
