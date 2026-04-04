@@ -66,6 +66,10 @@ line_style = solid
 # The unit is bp. This corresponds to the longest arc you will see.
 # This option is incompatible with compact_arcs_level = 2
 #ylim = 100000
+# Whether to skip links that extend outside the plotted region.
+# 'strict': skip if either end is outside the region (uses OR logic)
+# 'loose': skip only if both ends are outside the region (uses AND logic, default)
+#links_skip_outside = loose
 file_type = {TRACK_TYPE}
     """
     DEFAULTS_PROPERTIES = {'links_type': 'arcs',
@@ -80,7 +84,8 @@ file_type = {TRACK_TYPE}
                            'ylim': None,
                            'compact_arcs_level': '0',
                            'use_middle': False,
-                           'region2': None}
+                           'region2': None,
+                           'links_skip_outside': 'loose'}
     NECESSARY_PROPERTIES = ['file']
     SYNONYMOUS_PROPERTIES = {'max_value': {'auto': None},
                              'min_value': {'auto': None},
@@ -89,12 +94,13 @@ file_type = {TRACK_TYPE}
                            'links_type': ['arcs', 'triangles', 'loops', 'squares'],
                            'line_style': ['solid', 'dashed',
                                           'dotted', 'dashdot'],
-                           'compact_arcs_level': ['0', '1', '2']}
+                           'compact_arcs_level': ['0', '1', '2'],
+                           'links_skip_outside': ['strict', 'loose']}
     BOOLEAN_PROPERTIES = ['use_middle']
     STRING_PROPERTIES = ['file', 'file_type', 'overlay_previous',
                          'orientation', 'links_type', 'line_style',
                          'title', 'color', 'compact_arcs_level',
-                         'region2']
+                         'region2', 'links_skip_outside']
     FLOAT_PROPERTIES = {'max_value': [- np.inf, np.inf],
                         'min_value': [- np.inf, np.inf],
                         'ylim': [0, np.inf],
@@ -222,8 +228,12 @@ file_type = {TRACK_TYPE}
                         continue
             else:
                 # skip intervals whose start and end are outside the plotted region
-                if interval.begin < region_start and interval.end > region_end:
-                    continue
+                if self.properties['links_skip_outside'] == 'strict':
+                    if interval.begin < region_start or interval.end > region_end:
+                        continue
+                else:
+                    if interval.begin < region_start and interval.end > region_end:
+                        continue
 
             if self.properties['line_width'] is not None:
                 self.current_line_width = float(self.properties['line_width'])
